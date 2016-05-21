@@ -5,7 +5,7 @@
 # Notes: For simplicity this does not do any quality filtering and uses small
 # datasets that will probably not provide any biologically relevant result
 
-# Requirements: bionode-ncbi, sra-toolkit, bwa, seqtk and samtools
+# Requirements: bionode-ncbi, sra-toolkit, bwa, seqtk, samtools, and bcftools
 # (tip: check Docker, Homebrew or Linuxbrew)
 
 # Config
@@ -34,14 +34,22 @@ bwa mem -t $THREADS $REFERENCE *.fastq.gz > $READS.sam
 samtools view -@ $THREADS -bh $READS.sam  > $READS.unsorted.bam
 
 # Sort alignment file
-samtools sort -@ $THREADS $READS.unsorted.bam $READS.bam
+samtools sort -@ $THREADS $READS.unsorted.bam -o $READS.bam
 
 # Note: previous steps could probably also work like:
 # samtools view -bh -@ $THREADS $READS.sam | samtools sort -@ $THREADS - $READS.bam
 # Or even pipe from bwa step, check: http://www.htslib.org/workflow/
 
 # Index alignment file
+# makes $READS.bam.bai (binary alignment index)
 samtools index $READS.bam
 
 # Do variant calling
-samtools mpileup -uf $REFERENCE $READS.bam | bcftools call -c - > $READS.vcf
+
+# convert .fna.gz to .fna with bgzip because:
+# [fai_load] build FASTA index.
+# [fai_build] fail to open the FASTA file 503988/GCA_000315625.1_Guith1_genomic.fna.gz
+bgzip -@ $THREADS -d $REFERENCE
+
+# then multipileup with .fna
+samtools mpileup -uf `echo $REFERENCE | sed s/\.gz$//` $READS.bam | bcftools call -c - > $READS.vcf
