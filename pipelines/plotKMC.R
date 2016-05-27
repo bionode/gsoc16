@@ -10,7 +10,7 @@ args = commandArgs(trailingOnly=TRUE)
 print(args[1])
 data = read.table(args[1])
 names(data) = c("Coverage", "Count")
-png(args[2])
+png(args[2], width=960, height=960)
 ggplot(data, aes(x=Coverage, y=Count)) +
   geom_line(colour="blue") +
   coord_cartesian(xlim=c(0, as.integer(args[3])), ylim=c(0, as.numeric(args[4]))) +

@@ -1,0 +1,5 @@
+.DS_Store
+
+# trimmomatic files
+trimmomatic-0.36.jar
+adapters

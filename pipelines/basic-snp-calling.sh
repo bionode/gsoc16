@@ -11,7 +11,7 @@
 # Config
 THREADS=2
 MEMORYGB=4
-TMPDIR=/tmp
+TMPDIR=/Users/jmazz/Desktop/kmc-temp
 
 # Toggle comments to change species..
 
@@ -68,6 +68,8 @@ PLOTXMAX=60
 PLOTYMAX=1200000
 # merge paired end fasta files into interleaved fasta
 seqtk mergepe $READSFQ\_1.trim.pe.fastq.gz $READSFQ\_2.trim.pe.fastq.gz | gzip > $READSFQ.trim.pe.fastq.gz
+
+# using khmer
 # count k-mers
 # 25mins
 load-into-counting.py -N 4 -k $KMERSIZE -M 8e9 -T $THREADS $READSFQ.trim.pe.fastq.gz.kh  $READSFQ.trim.pe.fastq.gz
@@ -76,7 +78,6 @@ abundance-dist.py $READSFQ.trim.pe.fastq.gz.kh $READSFQ.trim.pe.fastq.gz $READSF
 # plot histogram (xmax and ymax might need adjustments so that plot can be interpreted)
 # plot-abundance-dist.py --xmax $PLOTXMAX --ymax $PLOTYMAX $READSFQ.trim.pe.fastq.gz.kh.hist $READSFQ.trim.pe.fastq.gz.kh.hist.png
 ./plotKhmer.R $READSFQ.trim.pe.fastq.gz.kh.hist $READSFQ.trim.pe.fastq.gz.kh.hist.png $PLOTXMAX $PLOTYMAX
-
 # INTERACTION REQUIRED: from plot results, pick a minimum frequency cutoff for filter
 MINCOVERAGE=5
 # filter low-abundance k-mers from reads (reads are not entirely discarded)
@@ -87,11 +88,13 @@ filter-abund.py -T $THREADS -C $MINCOVERAGE $READSFQ.trim.pe.fastq.gz.kh -o $REA
 # this methods discards reads so in a paired end dataset it might break some pairs
 # these orphan reads might need to be removed otherwise this could cause issues downstream
 # count k-mers
-kmc -k$KMERSIZE -m$MEMORYGB -t$THREADS $READSFQ.trim.pe.fastq.gz $READSFQ.trim.pe.kmc .
+#
+# need to increase limit for # of opened files on osx: ulimit -n 2048
+kmc -k$KMERSIZE -m$MEMORYGB -t$THREADS $READSFQ.trim.pe.fastq.gz $READSFQ.trim.pe.kmc $TMPDIR
 # make histogram
 kmc_tools histogram $READSFQ.trim.pe.kmc $READSFQ.trim.pe.kmc.hist.txt
 # plot histogram (R script not included with kmc)
-plotKMC.R $READSFQ.trim.pe.kmc.hist.txt $READSFQ.trim.pe.kmc.hist.png $PLOTXMAX $PLOTYMAX
+./plotKMC.R $READSFQ.trim.pe.kmc.hist.txt $READSFQ.trim.pe.kmc.hist.png $PLOTXMAX $PLOTYMAX
 # INTERACTION REQUIRED: from plots results, pick a minimum frequency cutoff for filter
 MINCOVERAGE=8
 # Filter rare k-mers in one step (slower but uses less disk space)
