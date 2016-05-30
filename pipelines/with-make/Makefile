@@ -1,10 +1,36 @@
 SPECIES="Salmonella enterica"
 READS=2492428
 
+# Toggle these variable declarations to switch between
+
+# 1. no trimming/filtering
+# PRECONDITION_TO_USE=fastq-dump.log
+# READS_1=reads_1.fastq.gz
+# READS_2=reads_2.fastq.gz
+
+# 2. kmc
+PRECONDITION_TO_USE=reads.trim.pe.kmc.fastq.gz
+READS_1=reads.trim.pe.kmc.fastq.gz
+
+# 3. khmer
+# TODO
+
+KMERSIZE=20
+PLOTXMAX=60
+PLOTYMAX=1200000
+# hardcoded, or don't use the make all rule.
+MINCOVERAGE=5
+
 THREADS=2
 MEMORYGB=4
+# need to mkdir this
 TMPDIR=/Users/jmazz/Desktop/kmc-temp
 TMPFILE=./tmp
+
+# File paths
+TRIMMOMATIC=../trimmomatic/trimmomatic-0.36.jar
+ADAPTERS=../trimmomatic/adapters
+PLOT_KMC=../plotKMC.R
 
 # === MAIN PIPELINE ===
 
@@ -54,8 +80,64 @@ fastq-dump.log: reads.sra
 	cat $@; \
 	echo "Target $@ took $$runtime seconds"; \
 
-# === FILTER ===
-# TODO
+# === TRIMMING ===
+
+trim.happened: fastq-dump.log
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	java -jar ${TRIMMOMATIC} PE -phred33 \
+	  reads_1.fastq.gz reads_2.fastq.gz \
+	  reads_1.trim.pe.fastq.gz reads_1.trim.se.fastq.gz \
+	  reads_2.trim.pe.fastq.gz reads_2.trim.se.fastq.gz \
+	  ILLUMINACLIP:${ADAPTERS}/TruSeq3-PE.fa:2:30:10 \
+	  LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36 > $@; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	cat $@; \
+	echo "Target $@ took $$runtime seconds"
+
+reads.trim.pe.fastq.gz: trim.happened
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	seqtk mergepe reads_1.trim.pe.fastq.gz reads_2.trim.pe.fastq.gz | gzip > $@; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	echo "Target $@ took $$runtime seconds"
+
+# === FILTERING ===
+
+# With refresh-bio/KMC
+reads.trim.pe.kmc: reads.trim.pe.fastq.gz
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	kmc -k${KMERSIZE} -m${MEMORYGB} -t${THREADS} $< $@ ${TMPDIR}; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	echo "Target $@ took $$runtime seconds"
+
+reads.trim.pe.kmc.hist.txt: reads.trim.pe.kmc
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	kmc_tools histogram $< $@; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	echo "Target $@ took $$runtime seconds"
+
+reads.trim.pe.kmc.hist.txt.png: reads.trim.pe.kmc.hist.txt
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	${PLOT_KMC} $< $@ ${PLOTXMAX} ${PLOTYMAX}; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	echo "Target $@ took $$runtime seconds"
+
+reads.trim.pe.kmc.fastq.gz: reads.trim.pe.kmc.hist.txt.png reads.trim.pe.fastq.gz
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	kmc_tools filter reads.trim.pe.kmc -cx${MINCOVERAGE} reads.trim.pe.fastq.gz -ci0 -cx0 $@; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	echo "Target $@ took $$runtime seconds"
 
 # === MAP READS TO REFERENCE ===
 
@@ -67,10 +149,10 @@ bwa-index.log: reference.genomic.fna.gz
 	export runtime=$$(($$end-$$start)); \
 	echo "Target $@ took $$runtime seconds"
 
-reads.sam: bwa-index.log fastq-dump.log
+reads.sam: bwa-index.log ${PRECONDITION_TO_USE}
 	@echo "=== Running $@ ==="
 	@export start=`date +%s`; \
-	bwa mem -t ${THREADS} reference.genomic.fna.gz *.fastq.gz > $@; \
+	bwa mem -t ${THREADS} reference.genomic.fna.gz ${READS_1} ${READS_2} > $@; \
 	export end=`date +%s`; \
 	export runtime=$$(($$end-$$start)); \
 	echo "Target $@ took $$runtime seconds"
@@ -142,8 +224,11 @@ clean:
 	-rm *.fna.*
 	-rm *.fastq.gz
 	-rm *.log
+	-rm trim.happened
+	-rm *.kmc
+	-rm *.kmc.*
 	-rm *.sam
 	-rm *.bam.bai
 	-rm *.bam
-	-rm *.vcf
+	-rm reads.vcf
 	-rm ${TMPFILE}
