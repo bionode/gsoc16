@@ -9,11 +9,12 @@ READS=2492428
 # READS_2=reads_2.fastq.gz
 
 # 2. kmc
-PRECONDITION_TO_USE=reads.trim.pe.kmc.fastq.gz
-READS_1=reads.trim.pe.kmc.fastq.gz
+# PRECONDITION_TO_USE=reads.trim.pe.kmc.fastq.gz
+# READS_1=reads.trim.pe.kmc.fastq.gz
 
 # 3. khmer
-# TODO
+PRECONDITION_TO_USE=reads.trim.pe.khmer.fastq.gz
+READS_1=reads.trim.pe.khmer.fastq.gz
 
 KMERSIZE=20
 PLOTXMAX=60
@@ -31,6 +32,7 @@ TMPFILE=./tmp
 TRIMMOMATIC=../trimmomatic/trimmomatic-0.36.jar
 ADAPTERS=../trimmomatic/adapters
 PLOT_KMC=../plotKMC.R
+PLOT_KHMER=../plotKhmer.R
 
 # === MAIN PIPELINE ===
 
@@ -139,6 +141,39 @@ reads.trim.pe.kmc.fastq.gz: reads.trim.pe.kmc.hist.txt.png reads.trim.pe.fastq.g
 	export runtime=$$(($$end-$$start)); \
 	echo "Target $@ took $$runtime seconds"
 
+# With khmer
+reads.trim.pe.fastq.gz.kh: reads.trim.pe.fastq.gz
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	load-into-counting.py -N 4 -k ${KMERSIZE} -M ${MEMORYGB}e9 -T ${THREADS} $@ $<; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	echo "Target $@ took $$runtime seconds"
+
+reads.trim.pe.fastq.gz.kh.hist: reads.trim.pe.fastq.gz.kh
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	abundance-dist.py $< reads.trim.pe.fastq.gz $@; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	echo "Target $@ took $$runtime seconds"
+
+reads.trim.pe.fastq.gz.kh.hist.png: reads.trim.pe.fastq.gz.kh.hist
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	${PLOT_KHMER} $< $@ ${PLOTXMAX} ${PLOTYMAX}; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	echo "Target $@ took $$runtime seconds"
+
+reads.trim.pe.khmer.fastq.gz: reads.trim.pe.fastq.gz.kh reads.trim.pe.fastq.gz
+	@echo "=== Running $@ ==="
+	@export start=`date +%s`; \
+	filter-abund.py -T ${THREADS} -C ${MINCOVERAGE} $< -o $@ reads.trim.pe.fastq.gz; \
+	export end=`date +%s`; \
+	export runtime=$$(($$end-$$start)); \
+	echo "Target $@ took $$runtime seconds"
+
 # === MAP READS TO REFERENCE ===
 
 bwa-index.log: reference.genomic.fna.gz
@@ -223,6 +258,7 @@ clean:
 	-rm *.fna
 	-rm *.fna.*
 	-rm *.fastq.gz
+	-rm *.fastq.gz.*
 	-rm *.log
 	-rm trim.happened
 	-rm *.kmc
