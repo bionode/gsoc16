@@ -5,7 +5,7 @@ TEMP='./tmp'
 THREADS=2
 
 rule all:
-    input: ['reads.vcf']
+    input: 'reads.vcf'
 
 # Download
 
@@ -25,7 +25,7 @@ rule get_reference:
 # Extracting
 
 rule extract_reads:
-    input: 'reads.sra'
+    input: rules.get_reads.output
     output: 'fastq-dump.log'
     benchmark: './benchmarks/extract_reads.txt'
     shell: 'fastq-dump --split-files --skip-technical --gzip {input} > {output}'
@@ -33,49 +33,49 @@ rule extract_reads:
 # Mapping
 
 rule index_reference:
-    input: 'reference.genomic.fna.gz'
+    input: rules.get_reference.output
     output: 'bwa-index.log'
     benchmark: './benchmarks/index_reference.txt'
     shell: 'bwa index {input} > {output}'
 
 rule sam:
     input:
-        reference='reference.genomic.fna.gz',
-        reads='fastq-dump.log',
-        index_files='bwa-index.log'
+        reference=rules.get_reference.output,
+        reads=rules.extract_reads.output,
+        index_files=rules.index_reference.output
     output: 'reads.sam'
     benchmark: './benchmarks/sam.txt'
     shell: 'bwa mem -t {THREADS} {input.reference} reads_1.fastq.gz reads_2.fastq.gz > {output}'
 
 rule reads_unsorted:
-    input: 'reads.sam'
+    input: rules.sam.output
     output: 'reads.unsorted.bam'
     benchmark: './benchmarks/reads_unsorted.txt'
     shell: 'samtools view -@ {THREADS} -bh {input} > {output}'
 
 rule bam:
-    input: 'reads.unsorted.bam'
+    input: rules.reads_unsorted.output
     output: 'reads.bam'
     benchmark: './benchmarks/bam.txt'
     shell: 'samtools sort -@ {THREADS} {input} -o {output}'
 
 rule bai:
-    input: 'reads.bam'
+    input: rules.bam.output
     output: 'reads.bam.bai'
     benchmark: './benchmarks/bai.txt'
     shell: 'samtools index {input} {output}'
 
 rule decompress_reference:
-    input: 'reference.genomic.fna.gz'
+    input: rules.get_reference.output
     output: 'reference.genomic.fna'
     benchmark: './benchmarks/decompress_reference.txt'
     shell: 'bgzip -d {input} --stdout > {output}'
 
 rule call:
     input:
-        bam='reads.bam',
-        alignment_index='reads.bam.bai',
-        reference='reference.genomic.fna'
+        bam=rules.bam.output,
+        alignment_index=rules.bai.output,
+        reference=rules.decompress_reference.output
     output: 'reads.vcf'
     benchmark: './benchmarks/call.txt'
     shell: 'samtools mpileup -uf {input.reference} {input.bam} | bcftools call -c - > {output}'
@@ -90,7 +90,8 @@ rule clean:
         rm *.sra || true;
         rm *.fastq.gz || true;
         rm *.sam || true;
-        rm *.bam *.bam.* || true;
-        rm *.fna *.fna.* || true;
+        rm *.bam.* *.bam || true;
+        rm *.fna.* || true;
+        rm *.fna || true;
         rm *.vcf || true;
     '''
