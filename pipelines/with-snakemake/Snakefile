@@ -26,9 +26,9 @@ rule get_reference:
 
 rule extract_reads:
     input: rules.get_reads.output
-    output: 'fastq-dump.log'
+    output: ['fastq-dump.log', expand("reads_{num}.fastq.gz", num=[1, 2])]
     benchmark: './benchmarks/extract_reads.txt'
-    shell: 'fastq-dump --split-files --skip-technical --gzip {input} > {output}'
+    shell: 'fastq-dump --split-files --skip-technical --gzip {input} > {output[0]}'
 
 # Mapping
 
@@ -40,30 +40,30 @@ rule index_reference:
 
 rule sam:
     input:
-        reference=rules.get_reference.output,
-        reads=rules.extract_reads.output,
+        ref=rules.get_reference.output,
+        readsHappened=rules.extract_reads.output[0],
+        sample=expand("reads_{num}.fastq.gz", num=[1, 2]),
         index_files=rules.index_reference.output
+    log:
+        "logs/bwa_mem/mem.log"
     output: 'reads.sam'
     benchmark: './benchmarks/sam.txt'
-    shell: 'bwa mem -t {THREADS} {input.reference} reads_1.fastq.gz reads_2.fastq.gz > {output}'
-
-rule reads_unsorted:
-    input: rules.sam.output
-    output: 'reads.unsorted.bam'
-    benchmark: './benchmarks/reads_unsorted.txt'
-    shell: 'samtools view -@ {THREADS} -bh {input} > {output}'
+    wrapper:
+        "0.0.8/bio/bwa_mem"
 
 rule bam:
-    input: rules.reads_unsorted.output
+    input: rules.sam.output
     output: 'reads.bam'
     benchmark: './benchmarks/bam.txt'
-    shell: 'samtools sort -@ {THREADS} {input} -o {output}'
+    wrapper:
+        "0.0.8/bio/samtools_sort"
 
 rule bai:
     input: rules.bam.output
     output: 'reads.bam.bai'
     benchmark: './benchmarks/bai.txt'
-    shell: 'samtools index {input} {output}'
+    wrapper:
+        "0.0.8/bio/samtools_index"
 
 rule decompress_reference:
     input: rules.get_reference.output
@@ -86,11 +86,13 @@ rule clean:
     shell: '''
         rm -rf {READS} || true;
         rm tmp || true;
+        rm -rf logs || true;
         rm *.log || true;
         rm *.sra || true;
         rm *.fastq.gz || true;
         rm *.sam || true;
-        rm *.bam.* *.bam || true;
+        rm *.bam.* || true;
+        rm *.bam || true;
         rm *.fna.* || true;
         rm *.fna || true;
         rm *.vcf || true;
