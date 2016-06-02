@@ -1,99 +1,104 @@
-REFERENCE_URL='http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000988525.2_ASM98852v2/GCA_000988525.2_ASM98852v2_genomic.fna.gz'
-READS='2492428'
-TEMP='./tmp'
+species = {
+    'Salmonella-enterica': {
+        'readsID': '2492428',
+        'reference_url': 'http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000988525.2_ASM98852v2/GCA_000988525.2_ASM98852v2_genomic.fna.gz'
+    },
+    'Staphylococcus-aureus': {
+        'readsID': '1274026',
+        'reference_url': 'http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000013425.1_ASM1342v1/GCA_000013425.1_ASM1342v1_genomic.fna.gz'
+    }
+}
 
 THREADS=2
+TEMP='./tmp'
+
+FINAL_FILES = []
+# Need to create some flag files so that rules for downloading data that do
+# not need an input, can have one so that they can be wildcarded.
+# As well, create the FINAL_FILES list.
+def init():
+    for specie in species:
+        FINAL_FILES.append(specie + '.vcf')
+
+        # TODO check if file already exists, if it does, don't make a new one
+        # with newer date, as that will restart the pipeline.
+        with open(specie + '.flag', 'w') as specieFlag:
+            specieFlag.write('')
+
+init()
 
 rule all:
-    input: 'reads.vcf'
+    input: FINAL_FILES
 
-# Download
+# === DOWNLOAD ===
 
-rule get_reads:
-    output: 'reads.sra'
-    benchmark: './benchmarks/get_reads.txt'
-    shell: '''
-        bionode-ncbi download sra {READS} > {TEMP};
-        cp {READS}/*.sra {output};
-    '''
+rule download_sra:
+    input: '{specie}.flag'
+    output: '{specie}.sra'
+    run:
+        readsID = species[wildcards.specie]['readsID']
+        shell('''
+            bionode-ncbi download sra {readsID} > {TEMP} && rm {TEMP};
+            cp {readsID}/*.sra {output} && rm -rf {readsID};
+        ''')
 
-rule get_reference:
-    output: 'reference.genomic.fna.gz'
-    benchmark: './benchmarks/get_reference.txt'
-    shell: 'curl -s {REFERENCE_URL} -o {output}'
+rule download_reference:
+    input: '{specie}.flag'
+    output: '{specie}.genomic.fna.gz'
+    run:
+        reference_url = species[wildcards.specie]['reference_url']
+        shell('curl -s {reference_url} -o {output}')
 
-# Extracting
+# === EXTRACT/DECOMPRESS ===
 
-rule extract_reads:
-    input: rules.get_reads.output
-    output: ['fastq-dump.log', expand("reads_{num}.fastq.gz", num=[1, 2])]
-    benchmark: './benchmarks/extract_reads.txt'
-    shell: 'fastq-dump --split-files --skip-technical --gzip {input} > {output[0]}'
-
-# Mapping
-
-rule index_reference:
-    input: rules.get_reference.output
-    output: 'bwa-index.log'
-    benchmark: './benchmarks/index_reference.txt'
-    shell: 'bwa index {input} > {output}'
-
-rule sam:
-    input:
-        ref=rules.get_reference.output,
-        readsHappened=rules.extract_reads.output[0],
-        sample=expand("reads_{num}.fastq.gz", num=[1, 2]),
-        index_files=rules.index_reference.output
-    log:
-        "logs/bwa_mem/mem.log"
-    output: 'reads.sam'
-    benchmark: './benchmarks/sam.txt'
-    wrapper:
-        "0.0.8/bio/bwa_mem"
-
-rule bam:
-    input: rules.sam.output
-    output: 'reads.bam'
-    benchmark: './benchmarks/bam.txt'
-    wrapper:
-        "0.0.8/bio/samtools_sort"
-
-rule bai:
-    input: rules.bam.output
-    output: 'reads.bam.bai'
-    benchmark: './benchmarks/bai.txt'
-    wrapper:
-        "0.0.8/bio/samtools_index"
+rule extract_sra:
+    input: '{specie}.sra'
+    output: '{specie}-fastq-dump.log'
+    shell: 'fastq-dump --split-files --skip-technical --gzip {input} > {output}'
 
 rule decompress_reference:
-    input: rules.get_reference.output
-    output: 'reference.genomic.fna'
-    benchmark: './benchmarks/decompress_reference.txt'
+    input: '{specie}.genomic.fna.gz'
+    output: '{specie}.genomic.fna'
     shell: 'bgzip -d {input} --stdout > {output}'
+
+# === MAPPING ===
+
+rule index_reference:
+    input: '{specie}.genomic.fna.gz'
+    output: ['{specie}-bwa-index.log', '{specie}_1.fastq.gz', '{specie}_2.fastq.gz']
+    shell: 'bwa index {input} > {output}'
+
+rule bwa_mem:
+    input:
+        ref = '{specie}.genomic.fna.gz',
+        readsHappened = '{specie}-fastq-dump.log',
+        sample = ['{specie}_1.fastq.gz', '{specie}_2.fastq.gz'],
+        index_files = '{specie}-bwa-index.log'
+    log: 'logs/bwa_mem/{specie}.log'
+    output: '{specie}.sam'
+    wrapper: '0.0.8/bio/bwa_mem'
+
+rule bam:
+    input: '{specie}.sam'
+    output: '{specie}.bam'
+    wrapper: '0.0.8/bio/samtools_sort'
+
+rule bai:
+    input: '{specie}.bam'
+    output: '{specie}.bam.bai'
+    wrapper: '0.0.8/bio/samtools_index'
 
 rule call:
     input:
-        bam=rules.bam.output,
-        alignment_index=rules.bai.output,
-        reference=rules.decompress_reference.output
-    output: 'reads.vcf'
-    benchmark: './benchmarks/call.txt'
+        bam = '{specie}.bam',
+        alignment_index = '{specie}.bam.bai',
+        reference = '{specie}.genomic.fna'
+    output: '{specie}.vcf'
     shell: 'samtools mpileup -uf {input.reference} {input.bam} | bcftools call -c - > {output}'
 
-# Cleanup
+# === CLEAN ===
 
 rule clean:
-    shell: '''
-        rm -rf {READS} || true;
-        rm tmp || true;
-        rm -rf logs || true;
-        rm *.log || true;
-        rm *.sra || true;
-        rm *.fastq.gz || true;
-        rm *.sam || true;
-        rm *.bam.* || true;
-        rm *.bam || true;
-        rm *.fna.* || true;
-        rm *.fna || true;
-        rm *.vcf || true;
-    '''
+    run:
+        s = [specie for specie in species]
+        shell('rm -rf {s}*; rm -rf logs')
