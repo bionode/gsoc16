@@ -1,3 +1,8 @@
+# built from biodocker:
+# https://github.com/BioDocker/containers/blob/master/bwa/0.7.12/Dockerfile
+# https://github.com/BioDocker/containers/blob/master/samtools/1.2/Dockerfile
+# https://github.com/BioDocker/containers/blob/master/bcftools/1.2/Dockerfile
+
 # Set the base image to Ubuntu
 FROM biodckr/biodocker
 
