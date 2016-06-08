@@ -19,12 +19,17 @@ process downloadReference {
   container true
 
   input: val referenceURL from species.collect { it.value.referenceURL }
-  output: file 'reference.genomic.fna.gz' into referenceGenomesZipped1, referenceGenomesZipped2, referenceGenomesZipped3
+  output: file 'reference.genomic.fna.gz' into referenceGenomeGz
 
   """
   appropriate/curl $referenceURL -o reference.genomic.fna.gz
   """
 }
+
+// fork reference genome into three other channels
+( referenceGenomeGz1,
+  referenceGenomeGz2,
+  referenceGenomeGz3 ) = referenceGenomeGz.into(3)
 
 process downloadSRA {
   container 'bionode/bionode-ncbi'
@@ -53,7 +58,7 @@ process extractSRA {
 process decompressReference {
   container 'biodckrdev/htslib'
 
-  input: file referenceGenome from referenceGenomesZipped1
+  input: file referenceGenome from referenceGenomeGz1
   output: file 'reference.genomic.fna' into referenceGenomes
 
   """
@@ -66,7 +71,7 @@ process decompressReference {
 process indexReference {
   container 'biodckr/bwa'
 
-  input: file reference from referenceGenomesZipped2
+  input: file reference from referenceGenomeGz2
   output: file '*.gz.*' into referenceIndexes
 
   """
@@ -74,43 +79,35 @@ process indexReference {
   """
 }
 
-// NOT dockerized
-process mem {
+process alignReads {
+  container 'bwa-samtools-bcftools'
+
   input:
-    file reference from referenceGenomesZipped3
+    file reference from referenceGenomeGz3
     file referenceIndex from referenceIndexes
     file sample from samples
   output: file 'reads.sam' into readsUnsorted
 
 
   """
-  bwa mem $reference $sample | samtools view -Sbh -o reads.sam
+  bwa mem $reference $sample | samtools view -Sbh - -o reads.sam
   """
 }
 
-// process view {
-//   container 'biodckr/samtools'
-//
-//   input: stdin memOut
-//   output: file 'reads.sam' into readsUnsorted
-//
-//   """
-//   cat - | samtools view -Sbh -o reads.sam
-//   """
-// }
-
-process bam {
+process sortAlignment {
   container 'biodckr/samtools'
 
   input: file sam from readsUnsorted
-  output: file 'reads.bam' into readsBAM1, readsBAM2
+  output: file 'reads.bam' into readsBAM
 
   """
   samtools sort $sam -o reads.bam > reads.bam
   """
 }
 
-process bai {
+( readsBAM1, readsBAM2 ) = readsBAM.into(2)
+
+process indexAlignment {
   container 'biodckr/samtools'
 
   input: file bam from readsBAM1
@@ -121,9 +118,8 @@ process bai {
   """
 }
 
-// NOT dockerized
-process call {
-  container: 'biodckr/samtools'
+process callVariants {
+  container 'bwa-samtools-bcftools'
 
   input:
     file bam from readsBAM2
