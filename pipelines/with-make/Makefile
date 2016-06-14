@@ -1,5 +1,6 @@
 SPECIES="Salmonella enterica"
 READS=2492428
+REFERENCE_URL=http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000988525.2_ASM98852v2/GCA_000988525.2_ASM98852v2_genomic.fna.gz
 
 # Toggle these variable declarations to switch between
 
@@ -25,14 +26,14 @@ MINCOVERAGE=5
 THREADS=2
 MEMORYGB=4
 # need to mkdir this
-TMPDIR=/Users/jmazz/Desktop/kmc-temp
+TMPDIR=${HOME}/kmc-temp
 TMPFILE=./tmp
 
 # File paths
-TRIMMOMATIC=../trimmomatic/trimmomatic-0.36.jar
-ADAPTERS=../trimmomatic/adapters
-PLOT_KMC=../plotKMC.R
-PLOT_KHMER=../plotKhmer.R
+TRIMMOMATIC=../bin/trimmomatic-0.36.jar
+ADAPTERS=../adapters
+PLOT_KMC=../bin/plotKMC.R
+PLOT_KHMER=../bin/plotKhmer.R
 
 # === MAIN PIPELINE ===
 
@@ -40,24 +41,10 @@ all: reads.vcf
 
 # === GET REFERENCE ===
 
-reference-urls.txt:
-	@# This can take several minutes
-	@# Can be made faster using an accession, but the point is the user need only
-	@# know the species name
+reference.genomic.fna.gz:	
 	@echo "=== Running $@ ==="
 	@export start=`date +%s`; \
-	bionode-ncbi urls assembly ${SPECIES} > $@; \
-	export end=`date +%s`; \
-	export runtime=$$(($$end-$$start)); \
-	echo "Target $@ took $$runtime seconds"
-
-reference.genomic.fna.gz: reference-urls.txt
-	@# Decently sketchy. bionode-ncbi giving a lot of rna_from_genomic instead of genomic under fna key
-	@# Take the first result that is not rna_from_genomic and has genomic.fna.gz
-	@echo "=== Running $@ ==="
-	@export start=`date +%s`; \
-	export REFERENCE_URL=`cat $< | grep -v rna_from_genomic | head -n 1 | json | grep genomic.fna.gz | cut -d \" -f4`; \
-	curl -s $$REFERENCE_URL -o $@; \
+	curl -s ${REFERENCE_URL} -o $@; \
 	export end=`date +%s`; \
 	export runtime=$$(($$end-$$start)); \
 	echo "Target $@ took $$runtime seconds"
@@ -203,7 +190,7 @@ reads.unsorted.bam: reads.sam
 reads.bam: reads.unsorted.bam
 	@echo "=== Running $@ ==="
 	@export start=`date +%s`; \
-	samtools sort -@ ${THREADS} $< -o $@; \
+	samtools sort -@ ${THREADS} $< -o ANYTHING > $@; \
 	export end=`date +%s`; \
 	export runtime=$$(($$end-$$start)); \
 	echo "Target $@ took $$runtime seconds"
@@ -211,7 +198,7 @@ reads.bam: reads.unsorted.bam
 reads.bam.bai: reads.bam
 	@echo "=== Running $@ ==="
 	@export start=`date +%s`; \
-	samtools index $< $@; \
+	samtools index $<; \
 	export end=`date +%s`; \
 	export runtime=$$(($$end-$$start)); \
 	echo "Target $@ took $$runtime seconds"

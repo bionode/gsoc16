@@ -1,0 +1,93 @@
+=== Running reads.trim.pe.fastq.gz.kh ===
+
+|| This is the script load-into-counting.py in khmer.
+|| You are running khmer version 2.0
+|| You are also using screed version 0.9
+||
+|| If you use this script in a publication, please cite EACH of the following:
+||
+||   * MR Crusoe et al., 2015. http://dx.doi.org/10.12688/f1000research.6924.1
+||   * Q Zhang et al., http://dx.doi.org/10.1371/journal.pone.0101271
+||   * A. D?ring et al. http://dx.doi.org:80/10.1186/1471-2105-9-11
+||
+|| Please see http://khmer.readthedocs.org/en/latest/citations.html for details.
+
+
+PARAMETERS:
+ - kmer size =    20 		(-k)
+ - n tables =     4 		(-N)
+ - max tablesize = 1e+09 	(-x)
+
+Estimated memory usage is 4e+09 bytes (n_tables x max_tablesize)
+--------
+Saving k-mer countgraph to reads.trim.pe.fastq.gz.kh
+Loading kmers from sequences in ['reads.trim.pe.fastq.gz']
+making countgraph
+consuming input reads.trim.pe.fastq.gz
+Total number of unique k-mers: 6382623
+saving reads.trim.pe.fastq.gz.kh
+fp rate estimated to be 0.000
+DONE.
+wrote to: reads.trim.pe.fastq.gz.kh.info
+Target reads.trim.pe.fastq.gz.kh took 40 seconds
+=== Running reads.trim.pe.khmer.fastq.gz ===
+
+|| This is the script filter-abund.py in khmer.
+|| You are running khmer version 2.0
+|| You are also using screed version 0.9
+||
+|| If you use this script in a publication, please cite EACH of the following:
+||
+||   * MR Crusoe et al., 2015. http://dx.doi.org/10.12688/f1000research.6924.1
+||   * Q Zhang et al., http://dx.doi.org/10.1371/journal.pone.0101271
+||
+|| Please see http://khmer.readthedocs.org/en/latest/citations.html for details.
+
+loading countgraph: reads.trim.pe.fastq.gz.kh
+K: 20
+filtering reads.trim.pe.fastq.gz
+starting threads
+starting writer
+loading...
+... filtering 0
+... filtering 100000
+... filtering 200000
+... filtering 300000
+... filtering 400000
+... filtering 500000
+processed 500000 / wrote 488593 / removed 11407
+processed 70601081 bp / wrote 67645219 bp / removed 2955862 bp
+discarded 4.2%
+... filtering 600000
+... filtering 700000
+... filtering 800000
+... filtering 900000
+... filtering 1000000
+processed 1000000 / wrote 979743 / removed 20257
+processed 140727919 bp / wrote 135106260 bp / removed 5621659 bp
+discarded 4.0%
+done loading in sequences
+DONE writing.
+processed 1022168 / wrote 1001527 / removed 20641
+processed 143842872 bp / wrote 138102648 bp / removed 5740224 bp
+discarded 4.0%
+output in reads.trim.pe.khmer.fastq.gz
+Target reads.trim.pe.khmer.fastq.gz took 66 seconds
+=== Running reads.sam ===
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 1001527 sequences (138102648 bp)...
+[M::mem_process_seqs] Processed 1001527 reads in 105.952 CPU sec, 5.540 real sec
+[main] Version: 0.7.12-r1039
+[main] CMD: bwa mem -t 20 reference.genomic.fna.gz reads.trim.pe.khmer.fastq.gz
+[main] Real time: 9.200 sec; CPU: 108.044 sec
+Target reads.sam took 9 seconds
+=== Running reads.unsorted.bam ===
+Target reads.unsorted.bam took 4 seconds
+=== Running reads.bam ===
+Target reads.bam took 6 seconds
+=== Running reads.bam.bai ===
+Target reads.bam.bai took 1 seconds
+=== Running reads.vcf ===
+[mpileup] 1 samples in 1 input files
+<mpileup> Set max per-file depth to 8000
+Target reads.vcf took 141 seconds

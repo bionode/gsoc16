@@ -1,0 +1,67 @@
+=== Running trim.happened ===
+TrimmomaticPE: Started with arguments:
+ -phred33 reads_1.fastq.gz reads_2.fastq.gz reads_1.trim.pe.fastq.gz reads_1.trim.se.fastq.gz reads_2.trim.pe.fastq.gz reads_2.trim.se.fastq.gz ILLUMINACLIP:../adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36
+Using PrefixPair: 'TACACTCTTTCCCTACACGACGCTCTTCCGATCT' and 'GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT'
+ILLUMINACLIP: Using 1 prefix pairs, 0 forward/reverse sequences, 0 forward only sequences, 0 reverse only sequences
+Input Read Pairs: 582158 Both Surviving: 511084 (87.79%) Forward Only Surviving: 53225 (9.14%) Reverse Only Surviving: 6849 (1.18%) Dropped: 11000 (1.89%)
+TrimmomaticPE: Completed successfully
+Target trim.happened took 59 seconds
+=== Running reads.trim.pe.fastq.gz ===
+Target reads.trim.pe.fastq.gz took 42 seconds
+=== Running reads.trim.pe.kmc ===
+*******************************************
+**********************************************************
+********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************
+1st stage: 6.84731s
+2nd stage: 2.35801s
+Total    : 9.20533s
+Tmp size : 132MB
+
+Stats:
+   No. of k-mers below min. threshold :      1205942
+   No. of k-mers above max. threshold :            0
+   No. of unique k-mers               :      6380647
+   No. of unique counted k-mers       :      5174705
+   Total no. of k-mers                :    124421680
+   Total no. of reads                 :      1022168
+   Total no. of super-k-mers          :     16306587
+Target reads.trim.pe.kmc took 9 seconds
+=== Running reads.trim.pe.kmc.hist.txt ===
+in1: 0% in1: 1% in1: 2% in1: 3% in1: 4% in1: 5% in1: 6% in1: 7% in1: 8% in1: 9% in1: 10% in1: 11% in1: 12% in1: 13% in1: 14% in1: 15% in1: 16% in1: 17% in1: 18% in1: 19% in1: 20% in1: 21% in1: 22% in1: 23% in1: 24% in1: 25% in1: 26% in1: 27% in1: 28% in1: 29% in1: 30% in1: 31% in1: 32% in1: 33% in1: 34% in1: 35% in1: 36% in1: 37% in1: 38% in1: 39% in1: 40% in1: 41% in1: 42% in1: 43% in1: 44% in1: 45% in1: 46% in1: 47% in1: 48% in1: 49% in1: 50% in1: 51% in1: 52% in1: 53% in1: 54% in1: 55% in1: 56% in1: 57% in1: 58% in1: 59% in1: 60% in1: 61% in1: 62% in1: 63% in1: 64% in1: 65% in1: 66% in1: 67% in1: 68% in1: 69% in1: 70% in1: 71% in1: 72% in1: 73% in1: 74% in1: 75% in1: 76% in1: 77% in1: 78% in1: 79% in1: 80% in1: 81% in1: 82% in1: 83% in1: 84% in1: 85% in1: 86% in1: 87% in1: 88% in1: 89% in1: 90% in1: 91% in1: 92% in1: 93% in1: 94% in1: 95% in1: 96% in1: 97% in1: 98% in1: 99% in1: 100% Target reads.trim.pe.kmc.hist.txt took 0 seconds
+=== Running reads.trim.pe.kmc.hist.txt.png ===
+/usr/bin/env: Rscript: No such file or directory
+Target reads.trim.pe.kmc.hist.txt.png took 0 seconds
+=== Running reads.trim.pe.kmc.fastq.gz ===
+Target reads.trim.pe.kmc.fastq.gz took 5 seconds
+=== Running reads.sam ===
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 142032 sequences (20000021 bp)...
+[M::process] read 142030 sequences (20000213 bp)...
+[M::mem_process_seqs] Processed 142032 reads in 12.318 CPU sec, 6.094 real sec
+[M::process] read 139938 sequences (20000232 bp)...
+[M::mem_process_seqs] Processed 142030 reads in 12.534 CPU sec, 6.154 real sec
+[M::process] read 142086 sequences (20000118 bp)...
+[M::mem_process_seqs] Processed 139938 reads in 12.732 CPU sec, 6.254 real sec
+[M::process] read 142914 sequences (20000076 bp)...
+[M::mem_process_seqs] Processed 142086 reads in 12.614 CPU sec, 6.226 real sec
+[M::process] read 142108 sequences (20000021 bp)...
+[M::mem_process_seqs] Processed 142914 reads in 12.663 CPU sec, 6.202 real sec
+[M::process] read 142050 sequences (20000034 bp)...
+[M::mem_process_seqs] Processed 142108 reads in 12.751 CPU sec, 6.307 real sec
+[M::process] read 1580 sequences (224687 bp)...
+[M::mem_process_seqs] Processed 142050 reads in 12.380 CPU sec, 6.141 real sec
+[M::mem_process_seqs] Processed 1580 reads in 0.243 CPU sec, 0.085 real sec
+[main] Version: 0.7.12-r1039
+[main] CMD: bwa mem -t 2 reference.genomic.fna.gz reads.trim.pe.kmc.fastq.gz
+[main] Real time: 43.931 sec; CPU: 88.455 sec
+Target reads.sam took 44 seconds
+=== Running reads.unsorted.bam ===
+Target reads.unsorted.bam took 14 seconds
+=== Running reads.bam ===
+Target reads.bam took 14 seconds
+=== Running reads.bam.bai ===
+Target reads.bam.bai took 1 seconds
+=== Running reads.vcf ===
+[mpileup] 1 samples in 1 input files
+<mpileup> Set max per-file depth to 8000
+Target reads.vcf took 145 seconds
