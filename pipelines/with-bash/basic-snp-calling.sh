@@ -19,7 +19,7 @@ REFERENCE="${REFERENCE_NAME}_genomic.fna.gz"
 REFERENCE_URL="http://ftp.ncbi.nlm.nih.gov/genomes/all/$REFERENCE_NAME/$REFERENCE"
 READS='2492428'
 export READSFQ='ERR1229296'
-FILTER_MODE='khmer' # 'khmer'
+FILTER_MODE='kmc' # kmc, khmer, none
 
 # Config
 export THREADS=2
@@ -82,21 +82,23 @@ echo "END merge trimmed reads"
 
 if [ $FILTER_MODE == 'kmc' ]; then
   if [ ! -d $TMPDIR ]; then
-    echo "Need to mkdir $TMPDIR"
-    exit 1
+    mkdir -p $TMPDIR
   fi
   echo "START filtering with kmc"
   export READS_TO_ALIGN="$READSFQ.trim.pe.kmc.fastq.gz"
   ./filter_kmc.sh
+  FINAL_OUTPUT="${READS}-kmc.vcf"
   echo "END filtering with kmc"
 elif [ $FILTER_MODE == 'khmer' ]; then
-  echo "Using khmer mode"
+  echo "START filtering with khmer"
   export READS_TO_ALIGN="$READSFQ.trim.pe.khmer.fastq.gz"
   ./filter_khmer.sh
   FINAL_OUTPUT="${READS}-khmer.vcf"
+  echo "END filtering with khmer"
 else
   echo "No filter mode set. Continuing with reads with adapters trimmed."
   READS_TO_ALIGN="$READSFQ.trim.pe.fastq.gz"
+  FINAL_OUTPUT="${READS}-trim.vcf"
 fi
 
 # === READS ALIGNMENT ===
@@ -115,8 +117,9 @@ samtools view -@ $THREADS -bh $READS.sam  > $READS.unsorted.bam
 echo "END sam -> bam"
 
 echo "START Sort alignment file"
-samtools sort -@ $THREADS $READS.unsorted.bam -o $READS.bam
-echo "START Sort alignment file"
+# Hack to work with v1.2
+samtools sort -@ $THREADS $READS.unsorted.bam -o ANYTHING > $READS.bam  
+echo "END Sort alignment file"
 
 # Note: previous steps could probably also work like:
 # samtools view -bh -@ $THREADS $READS.sam | samtools sort -@ $THREADS - $READS.bam
@@ -133,7 +136,11 @@ echo "END index alignment"
 # [fai_load] build FASTA index.
 # [fai_build] fail to open the FASTA file 503988/GCA_000315625.1_Guith1_genomic.fna.gz
 echo "START decompress reference"
-bgzip -@ $THREADS -d $REFERENCE
+# htslib v1.2 has no -@ option for bgzip
+# this deletes the original
+cp ${REFERENCE} ${REFERENCE}2
+bgzip -d $REFERENCE
+mv ${REFERENCE}2 ${REFERENCE}
 echo "END decompress reference"
 
 # then multipileup with .fna, and call with bcftools

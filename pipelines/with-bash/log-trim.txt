@@ -1,0 +1,51 @@
+START reference download
+END reference download
+START reads download
+END reads download
+START fastq-dump
+Read 582158 spots for 2492428/ERR1229296.sra
+Written 582158 spots for 2492428/ERR1229296.sra
+END fastq-dump
+START trim reads adapters
+TrimmomaticPE: Started with arguments:
+ -phred33 ERR1229296_1.fastq.gz ERR1229296_2.fastq.gz ERR1229296_1.trim.pe.fastq.gz ERR1229296_1.trim.se.fastq.gz ERR1229296_2.trim.pe.fastq.gz ERR1229296_2.trim.se.fastq.gz ILLUMINACLIP:../adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36
+Using PrefixPair: 'TACACTCTTTCCCTACACGACGCTCTTCCGATCT' and 'GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT'
+ILLUMINACLIP: Using 1 prefix pairs, 0 forward/reverse sequences, 0 forward only sequences, 0 reverse only sequences
+Input Read Pairs: 582158 Both Surviving: 511084 (87.79%) Forward Only Surviving: 53225 (9.14%) Reverse Only Surviving: 6849 (1.18%) Dropped: 11000 (1.89%)
+TrimmomaticPE: Completed successfully
+END trim reads adapters
+START merge trimmed reads
+END merge trimmed reads
+No filter mode set. Continuing with reads with adapters trimmed.
+START index reference
+[bwa_index] Pack FASTA... 0.08 sec
+[bwa_index] Construct BWT for the packed sequence...
+[bwa_index] 1.63 seconds elapse.
+[bwa_index] Update BWT... 0.03 sec
+[bwa_index] Pack forward-only FASTA... 0.06 sec
+[bwa_index] Construct SA from BWT and Occ... 0.57 sec
+[main] Version: 0.7.12-r1039
+[main] CMD: bwa index GCA_000006945.2_ASM694v2_genomic.fna.gz
+[main] Real time: 2.400 sec; CPU: 2.372 sec
+END index reference
+START Align reads to reference genome
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 1022168 sequences (143842872 bp)...
+[M::mem_process_seqs] Processed 1022168 reads in 75.938 CPU sec, 4.442 real sec
+[main] Version: 0.7.12-r1039
+[main] CMD: bwa mem -t 20 GCA_000006945.2_ASM694v2_genomic.fna.gz ERR1229296.trim.pe.fastq.gz
+[main] Real time: 10.512 sec; CPU: 80.252 sec
+END reads aligned
+START sam -> bam
+END sam -> bam
+START Sort alignment file
+START Sort alignment file
+START index alignment
+END index alignment
+START decompress reference
+END decompress reference
+START call variants
+[fai_load] build FASTA index.
+[mpileup] 1 samples in 1 input files
+<mpileup> Set max per-file depth to 8000
+END call variants

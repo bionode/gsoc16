@@ -1,0 +1,74 @@
+START reference download
+END reference download
+START reads download
+END reads download
+START fastq-dump
+Read 582158 spots for 2492428/ERR1229296.sra
+Written 582158 spots for 2492428/ERR1229296.sra
+END fastq-dump
+START trim reads adapters
+TrimmomaticPE: Started with arguments:
+ -phred33 ERR1229296_1.fastq.gz ERR1229296_2.fastq.gz ERR1229296_1.trim.pe.fastq.gz ERR1229296_1.trim.se.fastq.gz ERR1229296_2.trim.pe.fastq.gz ERR1229296_2.trim.se.fastq.gz ILLUMINACLIP:../adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36
+Using PrefixPair: 'TACACTCTTTCCCTACACGACGCTCTTCCGATCT' and 'GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT'
+ILLUMINACLIP: Using 1 prefix pairs, 0 forward/reverse sequences, 0 forward only sequences, 0 reverse only sequences
+Input Read Pairs: 582158 Both Surviving: 511084 (87.79%) Forward Only Surviving: 53225 (9.14%) Reverse Only Surviving: 6849 (1.18%) Dropped: 11000 (1.89%)
+TrimmomaticPE: Completed successfully
+END trim reads adapters
+START merge trimmed reads
+END merge trimmed reads
+START filtering with kmc
+START count k-mers
+*****************************************************************
+****************************************************************************************
+********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************
+1st stage: 4.81693s
+2nd stage: 0.309738s
+Total    : 5.12667s
+Tmp size : 132MB
+
+Stats:
+   No. of k-mers below min. threshold :      1205942
+   No. of k-mers above max. threshold :            0
+   No. of unique k-mers               :      6380647
+   No. of unique counted k-mers       :      5174705
+   Total no. of k-mers                :    124421680
+   Total no. of reads                 :      1022168
+   Total no. of super-k-mers          :     16306587
+END count k-mers
+START make histogram
+in1: 0% in1: 1% in1: 2% in1: 3% in1: 4% in1: 5% in1: 6% in1: 7% in1: 8% in1: 9% in1: 10% in1: 11% in1: 12% in1: 13% in1: 14% in1: 15% in1: 16% in1: 17% in1: 18% in1: 19% in1: 20% in1: 21% in1: 22% in1: 23% in1: 24% in1: 25% in1: 26% in1: 27% in1: 28% in1: 29% in1: 30% in1: 31% in1: 32% in1: 33% in1: 34% in1: 35% in1: 36% in1: 37% in1: 38% in1: 39% in1: 40% in1: 41% in1: 42% in1: 43% in1: 44% in1: 45% in1: 46% in1: 47% in1: 48% in1: 49% in1: 50% in1: 51% in1: 52% in1: 53% in1: 54% in1: 55% in1: 56% in1: 57% in1: 58% in1: 59% in1: 60% in1: 61% in1: 62% in1: 63% in1: 64% in1: 65% in1: 66% in1: 67% in1: 68% in1: 69% in1: 70% in1: 71% in1: 72% in1: 73% in1: 74% in1: 75% in1: 76% in1: 77% in1: 78% in1: 79% in1: 80% in1: 81% in1: 82% in1: 83% in1: 84% in1: 85% in1: 86% in1: 87% in1: 88% in1: 89% in1: 90% in1: 91% in1: 92% in1: 93% in1: 94% in1: 95% in1: 96% in1: 97% in1: 98% in1: 99% in1: 100% /usr/bin/env: Rscript: No such file or directory
+END plotted histogram
+START filtering rare k-mers
+END filtering rare k-mers
+END filtering with kmc
+START index reference
+[bwa_index] Pack FASTA... 0.08 sec
+[bwa_index] Construct BWT for the packed sequence...
+[bwa_index] 1.63 seconds elapse.
+[bwa_index] Update BWT... 0.03 sec
+[bwa_index] Pack forward-only FASTA... 0.06 sec
+[bwa_index] Construct SA from BWT and Occ... 0.57 sec
+[main] Version: 0.7.12-r1039
+[main] CMD: bwa index GCA_000006945.2_ASM694v2_genomic.fna.gz
+[main] Real time: 2.395 sec; CPU: 2.379 sec
+END index reference
+START Align reads to reference genome
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 964389 sequences (135920674 bp)...
+[M::mem_process_seqs] Processed 964389 reads in 71.265 CPU sec, 4.101 real sec
+[main] Version: 0.7.12-r1039
+[main] CMD: bwa mem -t 20 GCA_000006945.2_ASM694v2_genomic.fna.gz ERR1229296.trim.pe.kmc.fastq.gz
+[main] Real time: 7.674 sec; CPU: 73.371 sec
+END reads aligned
+START sam -> bam
+END sam -> bam
+START Sort alignment file
+END Sort alignment file
+START index alignment
+END index alignment
+START decompress reference
+[bgzip] GCA_000006945.2_ASM694v2_genomic.fna already exists; do you wish to overwrite (y or n)? END decompress reference
+START call variants
+[mpileup] 1 samples in 1 input files
+<mpileup> Set max per-file depth to 8000
+END call variants
