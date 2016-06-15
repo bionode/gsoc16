@@ -3,29 +3,16 @@ species = {
         'readsID': '2492428',
         'reference_url': 'http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000988525.2_ASM98852v2/GCA_000988525.2_ASM98852v2_genomic.fna.gz'
     },
-    'Staphylococcus-aureus': {
-        'readsID': '1274026',
-        'reference_url': 'http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000013425.1_ASM1342v1/GCA_000013425.1_ASM1342v1_genomic.fna.gz'
-    }
+    #'Staphylococcus-aureus': {
+    #    'readsID': '1274026',
+    #    'reference_url': 'http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000013425.1_ASM1342v1/GCA_000013425.1_ASM1342v1_genomic.fna.gz'
+    #}
 }
 
-THREADS=2
+THREADS=30
 TEMP='./tmp'
 
-FINAL_FILES = []
-# Need to create some flag files so that rules for downloading data that do
-# not need an input, can have one so that they can be wildcarded.
-# As well, create the FINAL_FILES list.
-def init():
-    for specie in species:
-        FINAL_FILES.append(specie + '.vcf')
-
-        # TODO check if file already exists, if it does, don't make a new one
-        # with newer date, as that will restart the pipeline.
-        with open(specie + '.flag', 'w') as specieFlag:
-            specieFlag.write('')
-
-init()
+FINAL_FILES = [specie+'.vcf' for specie in species]
 
 rule all:
     input: FINAL_FILES
@@ -33,7 +20,6 @@ rule all:
 # === DOWNLOAD ===
 
 rule download_sra:
-    input: '{specie}.flag'
     output: '{specie}.sra'
     run:
         readsID = species[wildcards.specie]['readsID']
@@ -43,7 +29,6 @@ rule download_sra:
         ''')
 
 rule download_reference:
-    input: '{specie}.flag'
     output: '{specie}.genomic.fna.gz'
     run:
         reference_url = species[wildcards.specie]['reference_url']
@@ -53,8 +38,8 @@ rule download_reference:
 
 rule extract_sra:
     input: '{specie}.sra'
-    output: '{specie}-fastq-dump.log'
-    shell: 'fastq-dump --split-files --skip-technical --gzip {input} > {output}'
+    output: ['{specie}_'+num+'.fastq.gz' for num in ['1', '2']]
+    shell: 'fastq-dump --split-files --skip-technical --gzip {input}'
 
 rule decompress_reference:
     input: '{specie}.genomic.fna.gz'
@@ -65,28 +50,34 @@ rule decompress_reference:
 
 rule index_reference:
     input: '{specie}.genomic.fna.gz'
-    output: ['{specie}-bwa-index.log', '{specie}_1.fastq.gz', '{specie}_2.fastq.gz']
-    shell: 'bwa index {input} > {output[0]}'
+    output: ['{specie}.genomic.fna.gz.'+suffix for suffix in ['amb', 'ann', 'bwt', 'pac', 'sa']] 
+    shell: 'bwa index {input}'
 
 rule bwa_mem:
     input:
         ref = '{specie}.genomic.fna.gz',
-        readsHappened = '{specie}-fastq-dump.log',
-        sample = ['{specie}_1.fastq.gz', '{specie}_2.fastq.gz'],
-        index_files = '{specie}-bwa-index.log'
+        sample = ['{specie}_'+num+'.fastq.gz' for num in ['1', '2']], 
+        index_files = ['{specie}.genomic.fna.gz.'+suffix for suffix in ['amb', 'ann', 'bwt', 'pac', 'sa']]
     log: 'logs/bwa_mem/{specie}.log'
     output: '{specie}.sam'
+    threads: THREADS
+    # https://bitbucket.org/snakemake/snakemake-wrappers/src/821062b43423a44c384df3faeb5e0714e0f86205/bio/bwa/mem/wrapper.py?at=master&fileviewer=file-view-default
     wrapper: '0.0.8/bio/bwa_mem'
 
 rule bam:
     input: '{specie}.sam'
     output: '{specie}.bam'
+    threads: THREADS
+    # https://bitbucket.org/snakemake/snakemake-wrappers/src/821062b43423a44c384df3faeb5e0714e0f86205/bio/samtools/sort/wrapper.py?at=master&fileviewer=file-view-default
     wrapper: '0.0.8/bio/samtools_sort'
 
 rule bai:
     input: '{specie}.bam'
     output: '{specie}.bam.bai'
-    wrapper: '0.0.8/bio/samtools_index'
+    # https://bitbucket.org/snakemake/snakemake-wrappers/src/821062b43423a44c384df3faeb5e0714e0f86205/bio/samtools/index/wrapper.py?at=master&fileviewer=file-view-default
+    # breaks with v1.2, see: https://www.biostars.org/p/102370/    
+    # wrapper: '0.0.8/bio/samtools_index'
+    shell: 'samtools index {input}'
 
 rule call:
     input:
@@ -100,5 +91,5 @@ rule call:
 
 rule clean:
     run:
-        s = [specie for specie in species]
-        shell('rm -rf {s}*; rm -rf logs')
+        for specie in species:
+            shell('rm -rf {specie}*; rm -rf logs') 

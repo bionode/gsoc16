@@ -1,0 +1,90 @@
+Provided cores: 30
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	1	bai
+	1	bam
+	1	bwa_mem
+	1	call
+	1	decompress_reference
+	1	download_reference
+	1	download_sra
+	1	extract_sra
+	1	index_reference
+	10
+rule download_reference:
+	output: Salmonella-enterica.genomic.fna.gz
+	wildcards: specie=Salmonella-enterica
+rule download_sra:
+	output: Salmonella-enterica.sra
+	wildcards: specie=Salmonella-enterica
+curl -s http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000988525.2_ASM98852v2/GCA_000988525.2_ASM98852v2_genomic.fna.gz -o Salmonella-enterica.genomic.fna.gz
+
+            bionode-ncbi download sra 2492428 > ./tmp && rm ./tmp;
+            cp 2492428/*.sra Salmonella-enterica.sra && rm -rf 2492428;
+        
+1 of 10 steps (10%) done
+rule index_reference:
+	input: Salmonella-enterica.genomic.fna.gz
+	output: Salmonella-enterica.genomic.fna.gz.amb, Salmonella-enterica.genomic.fna.gz.ann, Salmonella-enterica.genomic.fna.gz.bwt, Salmonella-enterica.genomic.fna.gz.pac, Salmonella-enterica.genomic.fna.gz.sa
+	wildcards: specie=Salmonella-enterica
+bwa index Salmonella-enterica.genomic.fna.gz
+rule decompress_reference:
+	input: Salmonella-enterica.genomic.fna.gz
+	output: Salmonella-enterica.genomic.fna
+	wildcards: specie=Salmonella-enterica
+bgzip -d Salmonella-enterica.genomic.fna.gz --stdout > Salmonella-enterica.genomic.fna
+[bwa_index] Pack FASTA... 2 of 10 steps (20%) done
+0.08 sec
+[bwa_index] Construct BWT for the packed sequence...
+[bwa_index] 1.62 seconds elapse.
+[bwa_index] Update BWT... 0.03 sec
+[bwa_index] Pack forward-only FASTA... 0.06 sec
+[bwa_index] Construct SA from BWT and Occ... 0.55 sec
+[main] Version: 0.7.12-r1039
+[main] CMD: bwa index Salmonella-enterica.genomic.fna.gz
+[main] Real time: 2.379 sec; CPU: 2.344 sec
+3 of 10 steps (30%) done
+4 of 10 steps (40%) done
+rule extract_sra:
+	input: Salmonella-enterica.sra
+	output: Salmonella-enterica_1.fastq.gz, Salmonella-enterica_2.fastq.gz
+	wildcards: specie=Salmonella-enterica
+fastq-dump --split-files --skip-technical --gzip Salmonella-enterica.sra
+Read 582158 spots for Salmonella-enterica.sra
+Written 582158 spots for Salmonella-enterica.sra
+5 of 10 steps (50%) done
+rule bwa_mem:
+	input: Salmonella-enterica.genomic.fna.gz.amb, Salmonella-enterica.genomic.fna.gz.ann, Salmonella-enterica.genomic.fna.gz.bwt, Salmonella-enterica.genomic.fna.gz.pac, Salmonella-enterica.genomic.fna.gz.sa, Salmonella-enterica.genomic.fna.gz, Salmonella-enterica_1.fastq.gz, Salmonella-enterica_2.fastq.gz
+	output: Salmonella-enterica.sam
+	log: logs/bwa_mem/Salmonella-enterica.log
+	wildcards: specie=Salmonella-enterica
+	threads: 30
+(bwa mem  -t 30 Salmonella-enterica.genomic.fna.gz Salmonella-enterica_1.fastq.gz Salmonella-enterica_2.fastq.gz | samtools view -Sbh -o Salmonella-enterica.sam -) 2> logs/bwa_mem/Salmonella-enterica.log
+6 of 10 steps (60%) done
+rule bam:
+	input: Salmonella-enterica.sam
+	output: Salmonella-enterica.bam
+	wildcards: specie=Salmonella-enterica
+	threads: 30
+samtools sort  -@ 30 -o Salmonella-enterica.bam -T Salmonella-enterica Salmonella-enterica.sam
+7 of 10 steps (70%) done
+rule bai:
+	input: Salmonella-enterica.bam
+	output: Salmonella-enterica.bam.bai
+	wildcards: specie=Salmonella-enterica
+samtools index Salmonella-enterica.bam
+8 of 10 steps (80%) done
+rule call:
+	input: Salmonella-enterica.genomic.fna, Salmonella-enterica.bam, Salmonella-enterica.bam.bai
+	output: Salmonella-enterica.vcf
+	wildcards: specie=Salmonella-enterica
+samtools mpileup -uf Salmonella-enterica.genomic.fna Salmonella-enterica.bam | bcftools call -c - > Salmonella-enterica.vcf
+[fai_load] build FASTA index.
+[mpileup] 1 samples in 1 input files
+<mpileup> Set max per-file depth to 8000
+9 of 10 steps (90%) done
+localrule all:
+	input: Salmonella-enterica.vcf
+10 of 10 steps (100%) done
