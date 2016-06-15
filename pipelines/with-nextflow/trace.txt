@@ -1,2 +1,6 @@
 task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	rss	vmem	rchar	wchar
 10	db/35f441	41949	alignReads_kmc (1)	COMPLETED	0	2016-06-15 01:49:49.707	2m 26s	2m 25s	94.5%	640.7 MB	1.6 GB	0	0
+11	7d/b3d089	42243	sortAlignment_kmc (1)	COMPLETED	0	2016-06-15 01:52:15.877	24.7s	24.7s	-	-	-	-	-
+12	81/717605	42349	indexAlignment_kmc (1)	COMPLETED	0	2016-06-15 01:52:40.631	2.2s	2.1s	-	-	-	-	-
+8	62/630cf0	41948	filterKHMER (1)	FAILED	125	2016-06-15 01:49:49.705	7m 2s	7m 2s	-	-	-	-	-
+13	ba/8ef7cd	42367	callVariants_kmc (1)	ABORTED	-	2016-06-15 01:52:42.842	-	-	-	-	-	-	-

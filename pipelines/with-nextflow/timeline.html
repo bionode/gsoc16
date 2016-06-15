@@ -81,12 +81,15 @@ var colors = d3.scale.category20c().domain(d3.range(0,20)).range()
 function c1(index) { return "#bdbdbd"; }
 function c2(index) { return colors[index % 16]; } // <-- note: uses only the first 16 colors
 
-var elapsed="1.8s"
-var beginningMillis=1465969752582;
-var endingMillis=1465969754430;
+var elapsed="7m 4s"
+var beginningMillis=1465969787688;
+var endingMillis=1465970211960;
 var data=[
-{"label": "alignReads_kmc (1)", "times": [{"starting_time": 1465969753999, "ending_time": 1465969754093, "color":c1(0)}]},
-{"label": "filterKHMER (1)", "times": [{"starting_time": 1465969754012, "ending_time": 1465969754096, "color":c1(1)}]}
+{"label": "alignReads_kmc (1)", "times": [{"starting_time": 1465969789707, "ending_time": 1465969789806, "color":c1(0)}, {"starting_time": 1465969789806, "ending_time": 1465969934606, "color":c2(0), "label": "2m 26s \/ 1.6 GB"}, {"starting_time": 1465969934606, "ending_time": 1465969935792, "color":c1(0)}]},
+{"label": "filterKHMER (1)", "times": [{"starting_time": 1465969789705, "ending_time": 1465969789801, "color":c1(1)}, {"starting_time": 1465969789801, "ending_time": 1465970211663, "color":c2(1), "label": "7m 2s \/ -"}]},
+{"label": "sortAlignment_kmc (1)", "times": [{"starting_time": 1465969935877, "ending_time": 1465969935932, "color":c1(2)}, {"starting_time": 1465969935932, "ending_time": 1465969960609, "color":c2(2), "label": "24.7s \/ -"}]},
+{"label": "indexAlignment_kmc (1)", "times": [{"starting_time": 1465969960631, "ending_time": 1465969960708, "color":c1(3)}, {"starting_time": 1465969960708, "ending_time": 1465969962816, "color":c2(3), "label": "2.2s \/ -"}]},
+{"label": "callVariants_kmc (1)", "times": [{"starting_time": 1465969962842, "ending_time": 1465969962919, "color":c1(4)}]}
 ]
 
 
