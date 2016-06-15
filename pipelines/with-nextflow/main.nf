@@ -14,8 +14,15 @@ species = [
 BASE_PATH = System.getProperty('user.dir') + '/'
 BIN = BASE_PATH + '../bin'
 ADAPTERS = BASE_PATH + '../adapters'
+TMPDIR = 'kmc-temp'
+
+KMERSIZE = 20
+PLOTXMAX = 60
+PLOTYMAX = 1200000
+MINCOVERAGE = 5
 
 THREADS = 20
+MEMORYGB = 4
 
 echo true
 
@@ -108,6 +115,40 @@ process mergeTrimEnds {
   """
 }
 
+( mergedTrim1,
+  mergedTrim2 ) = mergedTrim.into(2)
+
+// === FILTERING ===
+process filterKMC {
+  container 'thejmazz/polyglot-ngs-01'
+
+  input: file reads from mergedTrim1
+  output: file 'reads.trim.pe.kmc.fastq.gz' into reads_kmc
+
+  // skipping histogram for now
+
+  """
+  mkdir $TMPDIR
+  kmc -k${KMERSIZE} -m${MEMORYGB} -t${THREADS} $reads reads.trim.pe.kmc ${TMPDIR}
+  kmc_tools filter reads.trim.pe.kmc -cx${MINCOVERAGE} $reads -ci0 -cx0 reads.trim.pe.kmc.fastq.gz
+  """
+}
+
+process filterKHMER {
+  container 'thejmazz/polyglot-ngs-01'
+
+  input: file reads from mergedTrim2
+  output: file 'reads.trim.pe.khmer.fastq.gz' into reads_khmer
+
+  // skipping histogram plot
+
+  """
+  load-into-counting.py -N 4 -k ${KMERSIZE} -M ${MEMORYGB}e9 -T ${THREADS} reads.trim.pe.fastq.gz.kh $reads
+  abundance-dist.py reads.trim.pe.fastq.gz.kh $reads reads.trim.pe.fastq.gz.kh.hist
+  filter-abund.py -T ${THREADS} -C ${MINCOVERAGE} reads.trim.pe.fastq.gz.kh -o reads.trim.pe.khmer.fastq.gz $reads
+  """
+}
+
 // === MAPPING ===
 
 process indexReference {
@@ -126,29 +167,28 @@ process indexReference {
 
 // === BWA MEM ===
 
-process alignReadsVanilla {
+process alignReads_kmc {
   container 'bwa-samtools-bcftools'
 
   input:
     file reference from referenceGenomeGz3
     file referenceIndex from referenceIndexes1
-    file sample from samples2
-  output: file 'reads.sam' into readsUnsorted
-
+    file sample from reads_kmc
+  output: file 'reads.sam' into readsUnsorted_kmc
 
   """
   bwa mem -t $THREADS $reference $sample | samtools view -Sbh - -o reads.sam
   """
 }
 
-process alignReads_trim {
+process alignReads_khmer {
   container 'bwa-samtools-bcftools'
 
   input:
     file reference from referenceGenomeGz4
     file referenceIndex from referenceIndexes2
-    file sample from mergedTrim
-  output: file 'reads.sam' into readsUnsorted_trim
+    file sample from reads_khmer
+  output: file 'reads.sam' into readsUnsorted_khmer
 
   """
   bwa mem -t $THREADS $reference $sample | samtools view -Sbh - -o reads.sam
@@ -157,52 +197,52 @@ process alignReads_trim {
 
 // === SAMTOOLS SORT ===
 
-process sortAlignment {
+process sortAlignment_kmc {
   container 'biodckr/samtools'
 
-  input: file sam from readsUnsorted
-  output: file 'reads.bam' into readsBAM
-
-  """
-  samtools sort -@ $THREADS $sam -o reads.bam > reads.bam
-  """
-}
-
-( readsBAM1,
-  readsBAM2 ) = readsBAM.into(2)
-
-process sortAlignment_trim {
-  container 'biodckr/samtools'
-
-  input: file sam from readsUnsorted_trim
-  output: file 'reads.bam' into readsBAM_trim
+  input: file sam from readsUnsorted_kmc
+  output: file 'reads.bam' into readsBAM_kmc
 
   """
   samtools sort $sam -o reads.bam > reads.bam
   """
 }
 
-( readsBAM_trim1,
-  readsBAM_trim2 ) = readsBAM_trim.into(2)
+( readsBAM_kmc1,
+  readsBAM_kmc2 ) = readsBAM_kmc.into(2)
+
+process sortAlignment_khmer {
+  container 'biodckr/samtools'
+
+  input: file sam from readsUnsorted_khmer
+  output: file 'reads.bam' into readsBAM_khmer
+
+  """
+  samtools sort $sam -o reads.bam > reads.bam
+  """
+}
+
+( readsBAM_khmer1,
+  readsBAM_khmer2 ) = readsBAM_khmer.into(2)
 
 // === SAMTOOLS INDEX ===
 
-process indexAlignment {
+process indexAlignment_kmc {
   container 'biodckr/samtools'
 
-  input: file bam from readsBAM1
-  output: file 'reads.bam.bai' into readsBAI
+  input: file bam from readsBAM_kmc1
+  output: file 'reads.bam.bai' into readsBAI_kmc
 
   """
   samtools index $bam
   """
 }
 
-process indexAlignment_trim {
+process indexAlignment_khmer {
   container 'biodckr/samtools'
 
-  input: file bam from readsBAM_trim1
-  output: file 'reads.bam.bai' into readsBAI_trim
+  input: file bam from readsBAM_khmer1
+  output: file 'reads.bam.bai' into readsBAI_khmer
 
   """
   samtools index $bam
@@ -211,12 +251,12 @@ process indexAlignment_trim {
 
 // === SAMTOOLS MPILEUP | BCFTOOLS CALL ===
 
-process callVariants {
+process callVariants_kmc {
   container 'bwa-samtools-bcftools'
 
   input:
-    file bam from readsBAM2
-    file bai from readsBAI
+    file bam from readsBAM_kmc2
+    file bai from readsBAI_kmc
     file reference from referenceGenomes1
   output: 'variants.vcf'
 
@@ -225,12 +265,12 @@ process callVariants {
   """
 }
 
-process callVariants {
+process callVariants_khmer {
   container 'bwa-samtools-bcftools'
 
   input:
-    file bam from readsBAM_trim2
-    file bai from readsBAI_trim
+    file bam from readsBAM_khmer2
+    file bai from readsBAI_khmer
     file reference from referenceGenomes2
   output: 'variants.vcf'
 

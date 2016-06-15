@@ -1,0 +1,2 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	rss	vmem	rchar	wchar
+10	db/35f441	41949	alignReads_kmc (1)	COMPLETED	0	2016-06-15 01:49:49.707	2m 26s	2m 25s	94.5%	640.7 MB	1.6 GB	0	0
