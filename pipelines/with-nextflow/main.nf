@@ -89,7 +89,7 @@ process decompressReference {
 // === TRIMMING ===
 
 process trim {
-  container 'thejmazz/ployglot-ngs-01'
+  // container 'thejmazz/polyglot-ngs-01'
 
   input: file reads from samples1
   output: file '*pe.fastq.gz' into trimmomaticDump
@@ -120,7 +120,7 @@ process mergeTrimEnds {
 
 // === FILTERING ===
 process filterKMC {
-  container 'thejmazz/polyglot-ngs-01'
+  // container 'thejmazz/polyglot-ngs-01'
 
   input: file reads from mergedTrim1
   output: file 'reads.trim.pe.kmc.fastq.gz' into reads_kmc
@@ -135,7 +135,7 @@ process filterKMC {
 }
 
 process filterKHMER {
-  container 'thejmazz/polyglot-ngs-01'
+  // container 'thejmazz/polyglot-ngs-01'
 
   input: file reads from mergedTrim2
   output: file 'reads.trim.pe.khmer.fastq.gz' into reads_khmer

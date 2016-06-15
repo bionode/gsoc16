@@ -1,0 +1,38 @@
+N E X T F L O W  ~  version 0.19.2
+Launching main.nf
+[warm up] executor > local
+[31/a2cf67] Submitted process > downloadReference (1)
+[31/f36bae] Submitted process > downloadSRA (1)
+[a0/b36e3e] Submitted process > decompressReference (1)
+[3e/2ace22] Submitted process > indexReference (1)
+[0d/3c4da2] Submitted process > extractSRA (1)
+Read 582158 spots for ERR1229296.sra
+Written 582158 spots for ERR1229296.sra
+[ab/0150c9] Submitted process > trim (1)
+[fa/2f5010] Submitted process > mergeTrimEnds (1)
+[7f/e25bf1] Submitted process > filterKMC (1)
+[e1/c44b0a] Submitted process > filterKHMER (1)
+*****************************************************************
+****************************************************************************************
+********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************
+1st stage: 14.7368s
+2nd stage: 4.12382s
+Total    : 18.8607s
+Tmp size : 132MB
+
+Stats:
+   No. of k-mers below min. threshold :      1205942
+   No. of k-mers above max. threshold :            0
+   No. of unique k-mers               :      6380647
+   No. of unique counted k-mers       :      5174705
+   Total no. of k-mers                :    124421680
+   Total no. of reads                 :      1022168
+   Total no. of super-k-mers          :     16306587
+[4c/fc5421] Submitted process > alignReads_kmc (1)
+[39/2eefe5] Submitted process > sortAlignment_kmc (1)
+[48/c8d142] Submitted process > indexAlignment_kmc (1)
+[f4/e24ad0] Submitted process > callVariants_kmc (1)
+[ff/f3d33c] Submitted process > alignReads_khmer (1)
+[75/383f68] Submitted process > sortAlignment_khmer (1)
+[b2/7d3029] Submitted process > indexAlignment_khmer (1)
+[d9/cacef3] Submitted process > callVariants_khmer (1)

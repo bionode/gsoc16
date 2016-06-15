@@ -81,15 +81,27 @@ var colors = d3.scale.category20c().domain(d3.range(0,20)).range()
 function c1(index) { return "#bdbdbd"; }
 function c2(index) { return colors[index % 16]; } // <-- note: uses only the first 16 colors
 
-var elapsed="7m 4s"
-var beginningMillis=1465969787688;
-var endingMillis=1465970211960;
+var elapsed="49m 9s"
+var beginningMillis=1466017401685;
+var endingMillis=1466020350197;
 var data=[
-{"label": "alignReads_kmc (1)", "times": [{"starting_time": 1465969789707, "ending_time": 1465969789806, "color":c1(0)}, {"starting_time": 1465969789806, "ending_time": 1465969934606, "color":c2(0), "label": "2m 26s \/ 1.6 GB"}, {"starting_time": 1465969934606, "ending_time": 1465969935792, "color":c1(0)}]},
-{"label": "filterKHMER (1)", "times": [{"starting_time": 1465969789705, "ending_time": 1465969789801, "color":c1(1)}, {"starting_time": 1465969789801, "ending_time": 1465970211663, "color":c2(1), "label": "7m 2s \/ -"}]},
-{"label": "sortAlignment_kmc (1)", "times": [{"starting_time": 1465969935877, "ending_time": 1465969935932, "color":c1(2)}, {"starting_time": 1465969935932, "ending_time": 1465969960609, "color":c2(2), "label": "24.7s \/ -"}]},
-{"label": "indexAlignment_kmc (1)", "times": [{"starting_time": 1465969960631, "ending_time": 1465969960708, "color":c1(3)}, {"starting_time": 1465969960708, "ending_time": 1465969962816, "color":c2(3), "label": "2.2s \/ -"}]},
-{"label": "callVariants_kmc (1)", "times": [{"starting_time": 1465969962842, "ending_time": 1465969962919, "color":c1(4)}]}
+{"label": "downloadReference (1)", "times": [{"starting_time": 1466017402911, "ending_time": 1466017403016, "color":c1(0)}, {"starting_time": 1466017403016, "ending_time": 1466017405570, "color":c2(0), "label": "5.7s \/ 549.2 GB"}, {"starting_time": 1466017405570, "ending_time": 1466017408571, "color":c1(0)}]},
+{"label": "downloadSRA (1)", "times": [{"starting_time": 1466017402910, "ending_time": 1466017403012, "color":c1(1)}, {"starting_time": 1466017403012, "ending_time": 1466017461567, "color":c2(1), "label": "59.9s \/ 1.2 GB"}, {"starting_time": 1466017461567, "ending_time": 1466017462771, "color":c1(1)}]},
+{"label": "decompressReference (1)", "times": [{"starting_time": 1466017408661, "ending_time": 1466017408761, "color":c1(2)}, {"starting_time": 1466017408761, "ending_time": 1466017410166, "color":c2(2), "label": "1.5s \/ -"}]},
+{"label": "indexReference (1)", "times": [{"starting_time": 1466017408664, "ending_time": 1466017408769, "color":c1(3)}, {"starting_time": 1466017408769, "ending_time": 1466017413319, "color":c2(3), "label": "5.7s \/ 80.9 MB"}, {"starting_time": 1466017413319, "ending_time": 1466017414319, "color":c1(3)}]},
+{"label": "extractSRA (1)", "times": [{"starting_time": 1466017462787, "ending_time": 1466017462874, "color":c1(4)}, {"starting_time": 1466017462874, "ending_time": 1466017532848, "color":c2(4), "label": "1m 11s \/ 150.5 MB"}, {"starting_time": 1466017532848, "ending_time": 1466017533630, "color":c1(4)}]},
+{"label": "trim (1)", "times": [{"starting_time": 1466017533654, "ending_time": 1466017533734, "color":c1(5)}, {"starting_time": 1466017533734, "ending_time": 1466017565255, "color":c2(5), "label": "36.1s \/ 8.1 GB"}, {"starting_time": 1466017565255, "ending_time": 1466017569746, "color":c1(5)}]},
+{"label": "mergeTrimEnds (1)", "times": [{"starting_time": 1466017569778, "ending_time": 1466017569849, "color":c1(6)}, {"starting_time": 1466017569849, "ending_time": 1466017609299, "color":c2(6), "label": "40.2s \/ 31.6 MB"}, {"starting_time": 1466017609299, "ending_time": 1466017609989, "color":c1(6)}]},
+{"label": "filterKMC (1)", "times": [{"starting_time": 1466017610012, "ending_time": 1466017610094, "color":c1(7)}, {"starting_time": 1466017610094, "ending_time": 1466017741462, "color":c2(7), "label": "2m 14s \/ 8.6 GB"}, {"starting_time": 1466017741462, "ending_time": 1466017743716, "color":c1(7)}]},
+{"label": "filterKHMER (1)", "times": [{"starting_time": 1466017610010, "ending_time": 1466017610093, "color":c1(8)}, {"starting_time": 1466017610093, "ending_time": 1466019921209, "color":c2(8), "label": "38m 31s \/ 8.9 GB"}, {"starting_time": 1466019921209, "ending_time": 1466019921412, "color":c1(8)}]},
+{"label": "alignReads_kmc (1)", "times": [{"starting_time": 1466017743962, "ending_time": 1466017744171, "color":c1(9)}, {"starting_time": 1466017744171, "ending_time": 1466018357308, "color":c2(9), "label": "10m 17s \/ 2 GB"}, {"starting_time": 1466018357308, "ending_time": 1466018361195, "color":c1(9)}]},
+{"label": "sortAlignment_kmc (1)", "times": [{"starting_time": 1466018361304, "ending_time": 1466018361470, "color":c1(10)}, {"starting_time": 1466018361470, "ending_time": 1466018464990, "color":c2(10), "label": "1m 52s \/ 538.9 MB"}, {"starting_time": 1466018464990, "ending_time": 1466018473082, "color":c1(10)}]},
+{"label": "indexAlignment_kmc (1)", "times": [{"starting_time": 1466018473187, "ending_time": 1466018473285, "color":c1(11)}, {"starting_time": 1466018473285, "ending_time": 1466018480245, "color":c2(11), "label": "8.8s \/ 36.2 MB"}, {"starting_time": 1466018480245, "ending_time": 1466018482026, "color":c1(11)}]},
+{"label": "callVariants_kmc (1)", "times": [{"starting_time": 1466018482128, "ending_time": 1466018482269, "color":c1(12)}, {"starting_time": 1466018482269, "ending_time": 1466019696586, "color":c2(12), "label": "20m 16s \/ 89.2 MB"}, {"starting_time": 1466019696586, "ending_time": 1466019698353, "color":c1(12)}]},
+{"label": "alignReads_khmer (1)", "times": [{"starting_time": 1466019921534, "ending_time": 1466019921612, "color":c1(13)}, {"starting_time": 1466019921612, "ending_time": 1466020003192, "color":c2(13), "label": "1m 23s \/ 1.8 GB"}, {"starting_time": 1466020003192, "ending_time": 1466020004538, "color":c1(13)}]},
+{"label": "sortAlignment_khmer (1)", "times": [{"starting_time": 1466020004558, "ending_time": 1466020004639, "color":c1(14)}, {"starting_time": 1466020004639, "ending_time": 1466020025751, "color":c2(14), "label": "22s \/ 524.4 MB"}, {"starting_time": 1466020025751, "ending_time": 1466020026559, "color":c1(14)}]},
+{"label": "indexAlignment_khmer (1)", "times": [{"starting_time": 1466020026601, "ending_time": 1466020026662, "color":c1(15)}, {"starting_time": 1466020026662, "ending_time": 1466020027972, "color":c2(15), "label": "2.2s \/ 36.2 MB"}, {"starting_time": 1466020027972, "ending_time": 1466020028784, "color":c1(15)}]},
+{"label": "callVariants_khmer (1)", "times": [{"starting_time": 1466020028809, "ending_time": 1466020028885, "color":c1(16)}, {"starting_time": 1466020028885, "ending_time": 1466020349387, "color":c2(16), "label": "5m 21s \/ 89.1 MB"}, {"starting_time": 1466020349387, "ending_time": 1466020350127, "color":c1(16)}]}
 ]
 
 
