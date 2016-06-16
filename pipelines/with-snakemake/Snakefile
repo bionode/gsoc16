@@ -3,19 +3,16 @@ species = {
         'readsID': '2492428',
         'reference_url': 'http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000988525.2_ASM98852v2/GCA_000988525.2_ASM98852v2_genomic.fna.gz'
     },
-    #'Staphylococcus-aureus': {
-    #    'readsID': '1274026',
-    #    'reference_url': 'http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000013425.1_ASM1342v1/GCA_000013425.1_ASM1342v1_genomic.fna.gz'
-    #}
+    'Staphylococcus-aureus': {
+       'readsID': '1274026',
+       'reference_url': 'http://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000013425.1_ASM1342v1/GCA_000013425.1_ASM1342v1_genomic.fna.gz'
+    }
 }
 
-THREADS=30
-
-BIN='../bin'
-ADAPTERS='../adapters'
+THREADS=2
+TEMP='./tmp'
 
 FINAL_FILES = [specie+'.vcf' for specie in species]
-FINAL_FILES.extend([specie+'.trim'+'.vcf' for specie in species])
 
 rule all:
     input: FINAL_FILES
@@ -49,33 +46,12 @@ rule decompress_reference:
     output: '{specie}.genomic.fna'
     shell: 'bgzip -d {input} --stdout > {output}'
 
-# === INDEX REFERENCE ===
+# === MAPPING ===
 
 rule index_reference:
     input: '{specie}.genomic.fna.gz'
     output: ['{specie}.genomic.fna.gz.'+suffix for suffix in ['amb', 'ann', 'bwt', 'pac', 'sa']]
     shell: 'bwa index {input}'
-
-# === TRIMMING ===
-
-rule trim:
-    input: ['{specie}_'+num+'.fastq.gz' for num in ['1', '2']]
-    output: ['{specie}_1.trim.pe.fastq.gz', '{specie}_1.trim.se.fastq.gz', '{specie}_2.trim.pe.fastq.gz', '{specie}_2.trim.se.fastq.gz']
-    shell: '''
-      java -jar {BIN}/trimmomatic-0.36.jar PE -phred33 \
-	  {input[0]} {input[1]} \
-	  {output[0]} {output[1]} \
-	  {output[2]} {output[3]} \
-	  ILLUMINACLIP:{ADAPTERS}/TruSeq3-PE.fa:2:30:10 \
-	  LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36
-    '''
-
-rule mergeTrimEnds:
-    input: ['{specie}_'+num+'trim.pe.fastq.gz' for num in ['1', '2']]
-    output: '{specie}.trim.pe.fastq.gz'
-    shell: 'seqtk mergepe {input[0]} {input[1]} | gzip > {output}'
-
-# === MAPPING: VANILLA ===
 
 rule bwa_mem:
     input:
@@ -90,66 +66,25 @@ rule bwa_mem:
 
 rule bam:
     input: '{specie}.sam'
-    output: '{specie,[a-zA-z-]+}.bam'
+    output: '{specie}.bam'
     threads: THREADS
     # https://bitbucket.org/snakemake/snakemake-wrappers/src/821062b43423a44c384df3faeb5e0714e0f86205/bio/samtools/sort/wrapper.py?at=master&fileviewer=file-view-default
     wrapper: '0.0.8/bio/samtools_sort'
 
 rule bai:
-    input: '{specie,[a-zA-z-]+}.bam'
-    output: '{specie,[a-zA-z-]+}.bam.bai'
+    input: '{specie}.bam'
+    output: '{specie}.bam.bai'
     # https://bitbucket.org/snakemake/snakemake-wrappers/src/821062b43423a44c384df3faeb5e0714e0f86205/bio/samtools/index/wrapper.py?at=master&fileviewer=file-view-default
     # breaks with v1.2, see: https://www.biostars.org/p/102370/
     # wrapper: '0.0.8/bio/samtools_index'
     shell: 'samtools index {input}'
 
-# === MAPPING: TRIM ===
-
-rule bwa_mem_trim:
+rule call:
     input:
-        ref = '{specie}.genomic.fna.gz',
-        sample = '{specie}.trim.pe.fastq.gz',
-        index_files = ['{specie}.genomic.fna.gz.'+suffix for suffix in ['amb', 'ann', 'bwt', 'pac', 'sa']]
-    log: 'logs/bwa_mem/{specie}.trim.log'
-    output: '{specie}.trim.sam'
-    threads: THREADS
-    # https://bitbucket.org/snakemake/snakemake-wrappers/src/821062b43423a44c384df3faeb5e0714e0f86205/bio/bwa/mem/wrapper.py?at=master&fileviewer=file-view-default
-    wrapper: '0.0.8/bio/bwa_mem'
-
-rule bam_trim:
-    input: '{specie}.trim.sam'
-    output: '{specie}.trim.bam'
-    threads: THREADS
-    # https://bitbucket.org/snakemake/snakemake-wrappers/src/821062b43423a44c384df3faeb5e0714e0f86205/bio/samtools/sort/wrapper.py?at=master&fileviewer=file-view-default
-    wrapper: '0.0.8/bio/samtools_sort'
-
-rule bai_trim:
-    input: '{specie,[a-zA-z-]+}.trim.bam'
-    output: '{specie,[a-zA-z-]+}.trim.bam.bai'
-    # https://bitbucket.org/snakemake/snakemake-wrappers/src/821062b43423a44c384df3faeb5e0714e0f86205/bio/samtools/index/wrapper.py?at=master&fileviewer=file-view-default
-    # breaks with v1.2, see: https://www.biostars.org/p/102370/
-    # wrapper: '0.0.8/bio/samtools_index'
-    shell: 'samtools index {input}'
-
-# === CALLING ===
-
-# no trimming or filtering
-rule callVanilla:
-    input:
-        bam = '{specie,[a-zA-z-]+}.bam',
+        bam = '{specie}.bam',
         alignment_index = '{specie}.bam.bai',
         reference = '{specie}.genomic.fna'
-    output: '{specie,[a-zA-z-]+}.vcf'
-    shell: 'samtools mpileup -uf {input.reference} {input.bam} | bcftools call -c - > {output}'
-
-# just trimming
-rule callWithTrimming:
-    input:
-        bam = '{specie,[a-zA-z-]+}.trim.bam',
-        # bam = rules.bam_trim.output,
-        alignment_index = '{specie}.trim.bam.bai',
-        reference = '{specie}.genomic.fna'
-    output: '{specie,[a-zA-z-]+}.trim.vcf'
+    output: '{specie}.vcf'
     shell: 'samtools mpileup -uf {input.reference} {input.bam} | bcftools call -c - > {output}'
 
 # === CLEAN ===
