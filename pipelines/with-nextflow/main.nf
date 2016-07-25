@@ -40,10 +40,10 @@ process downloadReference {
 }
 
 // fork reference genome into three other channels
-( referenceGenomeGz1,
-  referenceGenomeGz2,
-  referenceGenomeGz3,
-  referenceGenomeGz4 ) = referenceGenomeGz.into(4)
+referenceGenomeGz.into { referenceGenomeGz1;
+                         referenceGenomeGz2;
+                         referenceGenomeGz3;
+                         referenceGenomeGz4 }
 
 process downloadSRA {
   container 'bionode/bionode-ncbi'
@@ -69,8 +69,7 @@ process extractSRA {
   """
 }
 
-( samples1,
-  samples2 ) = samples.into(2)
+samples.into { samples1; samples2 }
 
 process decompressReference {
   container 'biodckrdev/htslib'
@@ -83,8 +82,7 @@ process decompressReference {
   """
 }
 
-( referenceGenomes1,
-  referenceGenomes2 ) = referenceGenomes.into(2)
+referenceGenomes.into { referenceGenomes1; referenceGenomes2 }
 
 // === TRIMMING ===
 
@@ -115,8 +113,7 @@ process mergeTrimEnds {
   """
 }
 
-( mergedTrim1,
-  mergedTrim2 ) = mergedTrim.into(2)
+mergedTrim.into { mergedTrim1; mergedTrim2 }
 
 // === FILTERING ===
 process filterKMC {
@@ -162,8 +159,7 @@ process indexReference {
   """
 }
 
-( referenceIndexes1,
-  referenceIndexes2 ) = referenceIndexes.into(2)
+referenceIndexes.into { referenceIndexes1; referenceIndexes2 }
 
 // === BWA MEM ===
 
@@ -208,8 +204,7 @@ process sortAlignment_kmc {
   """
 }
 
-( readsBAM_kmc1,
-  readsBAM_kmc2 ) = readsBAM_kmc.into(2)
+readsBAM_kmc.into { readsBAM_kmc1; readsBAM_kmc2 }
 
 process sortAlignment_khmer {
   container 'biodckr/samtools'
@@ -222,8 +217,7 @@ process sortAlignment_khmer {
   """
 }
 
-( readsBAM_khmer1,
-  readsBAM_khmer2 ) = readsBAM_khmer.into(2)
+readsBAM_khmer.into {readsBAM_khmer1; readsBAM_khmer2 }
 
 // === SAMTOOLS INDEX ===
 
