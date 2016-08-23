@@ -21,6 +21,8 @@ rule all:
 
 rule download_sra:
     output: '{specie}.sra'
+    log: 'logs/download_sra/{specie}.log'
+    benchmark: 'benchmarks/download_sra/{specie}.txt'
     run:
         readsID = species[wildcards.specie]['readsID']
         shell('''
