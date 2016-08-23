@@ -1,11 +1,11 @@
 # GSoC Bionode 2016
 
-For my (Julian Mazzitelli, @thejmazz) GSoC project, I built [bionode-watermill](https://github.com/bionode-waterwheel) under [bionode](https://bionode.io) as part of the [Open Bioinformatics Foundation](https://www.open-bio.org/wiki/Main_Page). I can't thank enough the support of my mentors [bmpvieira](https://github.com/bmpvieira), [yannickwurm](https://github.com/yannickwurm), [mafintosh](https://github.com/mafintosh) and [maxogden](https://github.com/maxogden).
+For my (Julian Mazzitelli, @thejmazz) GSoC project, I built [bionode-watermill](https://github.com/bionode/bionode-watermill) under [bionode](https://bionode.io) as part of the [Open Bioinformatics Foundation](https://www.open-bio.org/wiki/Main_Page). I can't thank enough the support of my mentors [bmpvieira](https://github.com/bmpvieira), [yannickwurm](https://github.com/yannickwurm), [mafintosh](https://github.com/mafintosh) and [maxogden](https://github.com/maxogden).
 [![gitter][gitter-image]][gitter-url]
 
 ## Workflow engine
 
-As of August 23, 2016, I am the only contributor to the project. List of commits [here](https://github.com/bionode/bionode-waterwheel/commits?author=thejmazz). The project readme (link to readme as of August 23, 2016 here) describes what was achieved and the remaining roadmap in greater detail. 
+As of August 23, 2016, I am the only contributor to the project. List of commits [here](https://github.com/bionode/bionode-watermill/commits?author=thejmazz). The project readme (link to readme as of August 23, 2016 here) describes what was achieved and the remaining roadmap in greater detail. 
 
 This project was [originally described](https://summerofcode.withgoogle.com/projects/#6585953724399616) as a "workflow engine for streamed data analysis" with the features:
 
@@ -55,7 +55,7 @@ bcftools call -c - > variants.vcf
 `)
 ```
 
-See the [full example](https://github.com/bionode/bionode-waterwheel/blob/d2dba9f16066da1438a7f3d5c72381dd249f4b4f/examples/variant-calling-filtered/pipeline.js). Here, each task is completely swappable with another as long as the input and output patterns are the same. The `join` and `junction` functions allow the user to describe the flow of the whole pipeline in one place, given that each task is defined above. This is an improvement over methods where pipeline flow is described via properties within task declarations (e.g. channels) and lets the user witness the whole pipeline in one place. The `fork` function allows the user to describe a set of tasks which **take the same input, and produce the same output, yet through different means, as one atomic piece of the pipeline**. All tasks following the fork will automatically be instanced for each forking task. This could be used for example to:
+See the [full example](https://github.com/bionode/bionode-watermill/blob/d2dba9f16066da1438a7f3d5c72381dd249f4b4f/examples/variant-calling-filtered/pipeline.js). Here, each task is completely swappable with another as long as the input and output patterns are the same. The `join` and `junction` functions allow the user to describe the flow of the whole pipeline in one place, given that each task is defined above. This is an improvement over methods where pipeline flow is described via properties within task declarations (e.g. channels) and lets the user witness the whole pipeline in one place. The `fork` function allows the user to describe a set of tasks which **take the same input, and produce the same output, yet through different means, as one atomic piece of the pipeline**. All tasks following the fork will automatically be instanced for each forking task. This could be used for example to:
 
 - compare two different programs
 - compare paramaters for the same program
