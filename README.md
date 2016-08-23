@@ -1,6 +1,7 @@
 # GSoC Bionode 2016
 
 For my (Julian Mazzitelli, @thejmazz) GSoC project, I built [bionode-watermill](https://github.com/bionode/bionode-watermill) under [bionode](https://bionode.io) as part of the [Open Bioinformatics Foundation](https://www.open-bio.org/wiki/Main_Page). I can't thank enough the support of my mentors [bmpvieira](https://github.com/bmpvieira), [yannickwurm](https://github.com/yannickwurm), [mafintosh](https://github.com/mafintosh) and [maxogden](https://github.com/maxogden).
+
 [![gitter][gitter-image]][gitter-url]
 
 ## Workflow engine
