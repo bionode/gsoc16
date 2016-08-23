@@ -1,6 +1,9 @@
 # GSoC Bionode 2016
 
 For my (Julian Mazzitelli, @thejmazz) GSoC project, I built [bionode-watermill](https://github.com/bionode-waterwheel) under [bionode](https://bionode.io) as part of the [Open Bioinformatics Foundation](https://www.open-bio.org/wiki/Main_Page). 
+[![gitter][gitter-image]][gitter-url]
+
+## Workflow engine
 
 As of August 23, 2016, I am the only contributor to the project. List of commits [here](https://github.com/bionode/bionode-waterwheel/commits?author=thejmazz). The project readme (link to readme as of August 23, 2016 here) describes what was achieved and the remaining roadmap in greater detail. 
 
@@ -71,3 +74,7 @@ Currently, bionode-watermill **is not a drop in replacement for snakemake or nex
 - Improve stability of `fork`. Right now it works fine in some cases but may break in others.
 - Modularize the codebase into smaller scoped, well tested modules. There is somewhat this aim in the codebase, but can be improved. Operations like `join`, `junction`, `fork`, for example could be generalized into their own "orchestration" module and the task lifecycle management could be isolated into a module which exposes an API such as `lifecycle.addStage()`, `stage.onSuccess(anotherStage)` - almost like a state machine. The stability of the lifecycle management, management of context sharing between orchestration operations, passing of context into a new task, composability of orchestration operators are some of the things that need to strictly defined, well tested, and behave well under errors. There is a lot of moving parts in this application, and it can become difficult to keep everything in check. Redux helps as a pattern to make when/how changes to the state occur, but may or may not be as necessary moving forward.
 - Much more: see the [project issues](https://github.com/bionode/bionode-waterwheel/issues). I am available to provide feedback on any questions, suggest possible implementation in detail, etc. Any activity in the issues will make me very happy!
+
+
+[gitter-image]: https://img.shields.io/gitter/room/bionode/gsoc16.svg?style=flat-square
+[gitter-url]: https://gitter.im/bionode/gsoc16
